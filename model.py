@@ -108,10 +108,10 @@ class MeanLayer(layers.Layer):
 
     def call(self, inputs):
         x = self.layer1(inputs)
-        x = ops.squeeze(x)
+        x = ops.squeeze(x,axis=-1)
         x = self.dropout1(x)
         x = self.layer2(x)
-        x = ops.squeeze(x)
+        x = ops.squeeze(x,axis=-1)
         return self.dropout2(x)
 
 class StandardDeviationLayer(layers.Layer):
@@ -124,8 +124,37 @@ class StandardDeviationLayer(layers.Layer):
 
     def call(self, inputs):
         x = self.layer1(inputs)
-        x = ops.squeeze(x)
+        x = ops.squeeze(x,axis=-1)
         x = self.dropout1(x)
         x = self.layer2(x)
-        x = ops.squeeze(x)
+        x = ops.squeeze(x,axis=-1)
         return self.dropout2(x)
+
+class OutputLayer(layers.Layer):
+    def __init__(self,rate = 0.1):
+        super().__init__()
+        self.mu_layer = MeanLayer(rate)
+        self.sd_layer = StandardDeviationLayer(rate)
+        self.concat = layers.Concatenate()
+    
+    def call(self, inputs):
+        mu = self.mu_layer(inputs)
+        sd = self.sd_layer(inputs)
+        return self.concat([mu,sd])
+
+def build_model(n_stock: int = 263,
+                n_sector: int = 9,
+                maxlen: int = 5,
+                emb_dim: int = 32,
+                num_heads: int = 2,
+                ff_dim: int = 32,
+                rate = 0.1):
+    inputs = layers.Input(shape=(n_stock,4,maxlen))
+    embedding_layer = InputEmbedding(maxlen,n_sector,emb_dim)
+    x = embedding_layer(inputs)
+    transformer = TransformerBlock(emb_dim,num_heads,ff_dim,rate)
+    x = transformer(x)
+    output_layer = OutputLayer(rate)
+    outputs = output_layer(x)
+    return keras.Model(inputs=inputs, outputs=outputs)
+    
