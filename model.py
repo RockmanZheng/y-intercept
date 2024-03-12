@@ -20,13 +20,17 @@ class StockEmbedding(layers.Layer):
     def __init__(self, embed_dim):
         """
         Parameters:
-            - n_sector: the number of sectors
             - embed_dim: the dimension of the embedding vector
         """
         super().__init__()
         self.stock_emb = layers.Dense(units = embed_dim)
     
     def call(self, x):
+        """
+        Assuming the input x is of shape (stock, dim, period)
+        """
+        # transpose the last two axes
+        x = ops.transpose(x,axes = [0,2,1])
         return self.stock_emb(x)
 
 class PositionalEmbedding(layers.Layer):
@@ -46,3 +50,30 @@ class PositionalEmbedding(layers.Layer):
         # use reverse order like 4, 3, 2, 1, 0 to encode the time order
         positions = ops.arange(start = maxlen-1, stop = -1, step = -1)
         return self.pos_emb(positions)
+    
+class InputEmbedding(layers.Layer):
+    def __init__(self, maxlen, n_sector, embed_dim):
+        """
+        Parameters:
+            - maxlen: the maximal length of the look-back period 
+            - n_sector: the number of sectors
+            - embed_dim: the dimension of the embedding vector
+        """
+        super().__init__()
+        self.pos_emb = PositionalEmbedding(maxlen, embed_dim)
+        self.stock_emb = StockEmbedding(embed_dim)
+        self.sec_emb = SectorEmbedding(n_sector,embed_dim)
+
+    def call(self, x):
+        """
+        Parameters:
+            - x: input tensor of shape (n_stock, dim, period). 
+                - x[i,0,t]: sector of stock i.
+                - x[i,1,t]: return of stock i in period t
+                - x[i,2,t]: market cap change of stock i in period t
+                - x[i,3,t]: volume change of stock i in period t
+        """
+        positions = self.pos_emb(x)
+        sectors = self.sec_emb(x[:,0,:])
+        stocks = self.stock_emb(x[:,1:,:])
+        return positions + sectors + stocks
