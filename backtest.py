@@ -2,7 +2,8 @@ import numpy as np
 import keras
 import torch
 import matplotlib.pyplot as plt
-
+import pandas as pd
+from datetime import datetime
 
 def calc_opt_portfolio(model: keras.Model,
                        inputs: np.ndarray,
@@ -22,4 +23,13 @@ if __name__ == '__main__':
     _,_,_,_,x_test,y_test = torch.load('data/data.pt')
     portfolios = calc_opt_portfolio(model, x_test)
     RoR = calc_return(portfolios,np.array(y_test))
-    plt.plot(RoR)
+
+    stock_df = pd.read_csv('data/data_last.csv')
+    tmp = stock_df[stock_df['ticker']=='1332 JT']
+    date_list = tmp['date'].apply(lambda x: datetime.strptime(x,'%Y-%m-%d'))
+    time_range = date_list.iloc[-len(RoR):]
+    print(time_range)
+    plt.plot(time_range,RoR*100)
+    plt.title('Transformer-Based Mean-Variance Portfolio Strategy')
+    plt.ylabel('Return [%]')
+    plt.savefig('backtest.png')
