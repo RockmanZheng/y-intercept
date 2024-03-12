@@ -168,4 +168,4 @@ def gaussian_log_like_loss(y_true,y_pred):
     d = n//2
     mu = y_pred[:,:d]
     sd = y_pred[:,d:]
-    return ops.sum(ops.square(y_true-mu)/ops.square(sd),axis=-1)+ops.sum(ops.log(ops.square(sd)),axis=-1)
+    return ops.mean(ops.square(y_true-mu)/(1e-6+ops.square(sd))+ops.log(1e-6+ops.square(sd)),axis=-1)
