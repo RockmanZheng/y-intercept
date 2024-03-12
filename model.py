@@ -26,6 +26,11 @@ class StockEmbedding(layers.Layer):
         self.stock_emb = layers.Dense(units = embed_dim)
     
     def call(self, x):
+        """
+        Assuming the input x is of shape (stock, dim, period)
+        """
+        # transpose the last two axes
+        x = ops.transpose(x,axes = [0,2,1])
         return self.stock_emb(x)
 
 class PositionalEmbedding(layers.Layer):
