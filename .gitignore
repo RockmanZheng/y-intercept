@@ -1,2 +1,5 @@
 data.zip
 .DS_Store
+**.pyc
+workbench.ipynb
+model_backup.keras
