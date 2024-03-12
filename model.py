@@ -158,3 +158,14 @@ def build_model(n_stock: int = 263,
     outputs = output_layer(x)
     return keras.Model(inputs=inputs, outputs=outputs)
     
+def gaussian_log_like_loss(y_true,y_pred):
+    """
+    Parameters:
+        - y_true: The next-day return of each stock
+        - y_pred: the predicted next-day mean and standard deviation of return
+    """
+    n = ops.shape(y_pred)[-1]
+    d = n//2
+    mu = y_pred[:,:d]
+    sd = y_pred[:,d:]
+    return ops.sum(ops.square(y_true-mu)/ops.square(sd),axis=-1)+ops.sum(ops.log(ops.square(sd)),axis=-1)
