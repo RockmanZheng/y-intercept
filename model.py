@@ -3,13 +3,13 @@ from keras import layers
 from keras import ops
 
 class SectorEmbedding(layers.Layer):
-    def __init__(self, n_sector, embed_dim):
+    def __init__(self, n_sector, embed_dim, **kwargs):
         """
         Parameters:
             - n_sector: the number of sectors
             - embed_dim: the dimension of the embedding vector
         """
-        super().__init__()
+        super(SectorEmbedding, self).__init__(**kwargs)
         self.sec_emb = layers.Embedding(input_dim = n_sector,
                                         output_dim = embed_dim)
     
@@ -17,12 +17,12 @@ class SectorEmbedding(layers.Layer):
         return self.sec_emb(x)
     
 class StockEmbedding(layers.Layer):
-    def __init__(self, embed_dim):
+    def __init__(self, embed_dim, **kwargs):
         """
         Parameters:
             - embed_dim: the dimension of the embedding vector
         """
-        super().__init__()
+        super(StockEmbedding, self).__init__(**kwargs)
         self.stock_emb = layers.Dense(units = embed_dim)
     
     def call(self, x):
@@ -34,13 +34,13 @@ class StockEmbedding(layers.Layer):
         return self.stock_emb(x)
 
 class PositionalEmbedding(layers.Layer):
-    def __init__(self, maxlen, embed_dim):
+    def __init__(self, maxlen, embed_dim, **kwargs):
         """
         Parameters:
             - maxlen: the maximal length of the look-back period 
             - embed_dim: the dimension of the embedding vector
         """
-        super().__init__()
+        super(PositionalEmbedding, self).__init__(**kwargs)
         self.maxlen = maxlen
         self.pos_emb = layers.Embedding(input_dim = maxlen,
                                         output_dim = embed_dim)
@@ -52,14 +52,14 @@ class PositionalEmbedding(layers.Layer):
         return self.pos_emb(positions)
     
 class InputEmbedding(layers.Layer):
-    def __init__(self, maxlen, n_sector, embed_dim):
+    def __init__(self, maxlen, n_sector, embed_dim, **kwargs):
         """
         Parameters:
             - maxlen: the maximal length of the look-back period 
             - n_sector: the number of sectors
             - embed_dim: the dimension of the embedding vector
         """
-        super().__init__()
+        super(InputEmbedding, self).__init__(**kwargs)
         self.pos_emb = PositionalEmbedding(maxlen, embed_dim)
         self.stock_emb = StockEmbedding(embed_dim)
         self.sec_emb = SectorEmbedding(n_sector,embed_dim)
@@ -79,8 +79,8 @@ class InputEmbedding(layers.Layer):
         return positions + sectors + stocks
     
 class TransformerBlock(layers.Layer):
-    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
-        super().__init__()
+    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1, **kwargs):
+        super(TransformerBlock, self).__init__(**kwargs)
         self.att = layers.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
         self.ffn = keras.Sequential(
             [layers.Dense(ff_dim, activation="relu"), layers.Dense(embed_dim),]
@@ -99,8 +99,8 @@ class TransformerBlock(layers.Layer):
         return self.layernorm2(out1 + ffn_output)
     
 class MeanLayer(layers.Layer):
-    def __init__(self,rate = 0.1):
-        super().__init__()
+    def __init__(self,rate = 0.1, **kwargs):
+        super(MeanLayer, self).__init__(**kwargs)
         self.layer1 = layers.Dense(1)
         self.layer2 = layers.Dense(1)
         self.dropout1 = layers.Dropout(rate)
@@ -115,8 +115,8 @@ class MeanLayer(layers.Layer):
         return self.dropout2(x)
 
 class StandardDeviationLayer(layers.Layer):
-    def __init__(self,rate = 0.1):
-        super().__init__()
+    def __init__(self,rate = 0.1, **kwargs):
+        super(StandardDeviationLayer, self).__init__(**kwargs)
         self.layer1 = layers.Dense(1)
         self.layer2 = layers.Dense(1)
         self.dropout1 = layers.Dropout(rate)
@@ -131,8 +131,8 @@ class StandardDeviationLayer(layers.Layer):
         return self.dropout2(x)
 
 class OutputLayer(layers.Layer):
-    def __init__(self,rate = 0.1):
-        super().__init__()
+    def __init__(self,rate = 0.1, **kwargs):
+        super(OutputLayer, self).__init__(**kwargs)
         self.mu_layer = MeanLayer(rate)
         self.sd_layer = StandardDeviationLayer(rate)
         self.concat = layers.Concatenate()
@@ -157,7 +157,8 @@ def build_model(n_stock: int = 263,
     output_layer = OutputLayer(rate)
     outputs = output_layer(x)
     return keras.Model(inputs=inputs, outputs=outputs)
-    
+
+@keras.saving.register_keras_serializable()
 def gaussian_log_like_loss(y_true,y_pred):
     """
     Parameters:
