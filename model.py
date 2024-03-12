@@ -113,3 +113,19 @@ class MeanLayer(layers.Layer):
         x = self.layer2(x)
         x = ops.squeeze(x)
         return self.dropout2(x)
+
+class StandardDeviationLayer(layers.Layer):
+    def __init__(self,rate = 0.1):
+        super().__init__()
+        self.layer1 = layers.Dense(1)
+        self.layer2 = layers.Dense(1)
+        self.dropout1 = layers.Dropout(rate)
+        self.dropout2 = layers.Dropout(rate)
+
+    def call(self, inputs):
+        x = self.layer1(inputs)
+        x = ops.squeeze(x)
+        x = self.dropout1(x)
+        x = self.layer2(x)
+        x = ops.squeeze(x)
+        return self.dropout2(x)
