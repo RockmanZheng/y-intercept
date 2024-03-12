@@ -62,13 +62,13 @@ class InputEmbedding(layers.Layer):
     def call(self, x):
         """
         Parameters:
-            - x: input tensor of shape (n_stock, period, dim). 
-                - x[i,t,0]: sector of stock i.
-                - x[i,t,1]: return of stock i in period t
-                - x[i,t,2]: market cap change of stock i in period t
-                - x[i,t,3]: volume change of stock i in period t
+            - x: input tensor of shape (n_stock, dim, period). 
+                - x[i,0,t]: sector of stock i.
+                - x[i,1,t]: return of stock i in period t
+                - x[i,2,t]: market cap change of stock i in period t
+                - x[i,3,t]: volume change of stock i in period t
         """
         positions = self.pos_emb(x)
-        sectors = self.sec_emb(x[:,:,0])
-        stocks = self.stock_emb(x[:,:,1:])
+        sectors = self.sec_emb(x[:,0,:])
+        stocks = self.stock_emb(x[:,1:,:])
         return positions + sectors + stocks
