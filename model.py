@@ -108,10 +108,10 @@ class MeanLayer(layers.Layer):
 
     def call(self, inputs):
         x = self.layer1(inputs)
-        x = ops.squeeze(x)
+        x = ops.squeeze(x,axis=-1)
         x = self.dropout1(x)
         x = self.layer2(x)
-        x = ops.squeeze(x)
+        x = ops.squeeze(x,axis=-1)
         return self.dropout2(x)
 
 class StandardDeviationLayer(layers.Layer):
@@ -124,10 +124,10 @@ class StandardDeviationLayer(layers.Layer):
 
     def call(self, inputs):
         x = self.layer1(inputs)
-        x = ops.squeeze(x)
+        x = ops.squeeze(x,axis=-1)
         x = self.dropout1(x)
         x = self.layer2(x)
-        x = ops.squeeze(x)
+        x = ops.squeeze(x,axis=-1)
         return self.dropout2(x)
 
 class OutputLayer(layers.Layer):
@@ -135,18 +135,16 @@ class OutputLayer(layers.Layer):
         super().__init__()
         self.mu_layer = MeanLayer(rate)
         self.sd_layer = StandardDeviationLayer(rate)
-        self.reshaper1 = layers.Reshape(target_shape=(1,))
-        self.reshaper2 = layers.Reshape(target_shape=(1,))
-        self.concat = layers.Concatenate(axis = 1)
+        self.concat = layers.Concatenate()
     
     def call(self, inputs):
         mu = self.mu_layer(inputs)
         sd = self.sd_layer(inputs)
-        return self.concat([self.reshaper1(mu),self.reshaper2(sd)])
+        return self.concat([mu,sd])
 
 def build_model(n_stock: int = 263,
                 n_sector: int = 9,
-                maxlen: int = 60,
+                maxlen: int = 5,
                 emb_dim: int = 32,
                 num_heads: int = 2,
                 ff_dim: int = 32,
