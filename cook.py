@@ -29,18 +29,18 @@ sector_encoded = le.transform(sector_df['bics_sector'])
 # calculate stock return
 return_df = pd.DataFrame(data = {'ticker':stock_df['ticker'].iloc[1:],
                                  'date':stock_df['date'].iloc[1:],
-                                 'return': 100*(stock_df['last'].iloc[1:].to_numpy()/stock_df['last'].iloc[0:-1].to_numpy()-1)})
+                                 'return': (stock_df['last'].iloc[1:].to_numpy()/stock_df['last'].iloc[0:-1].to_numpy()-1)})
 # remove invalid return: the first date of each symbol
 
 # calculate market cap change
 mktcap_change_df = pd.DataFrame(data = {'ticker':mktcap_df['ticker'].iloc[1:],
                                  'date':mktcap_df['date'].iloc[1:],
-                                 'mcap_change': 100*(mktcap_df['mkt_cap'].iloc[1:].to_numpy()/mktcap_df['mkt_cap'].iloc[0:-1].to_numpy()-1)})
+                                 'mcap_change': (mktcap_df['mkt_cap'].iloc[1:].to_numpy()/mktcap_df['mkt_cap'].iloc[0:-1].to_numpy()-1)})
 
 # calculate volume change
 vol_change_df = pd.DataFrame(data = {'ticker':vol_df['ticker'].iloc[1:],
                                  'date':vol_df['date'].iloc[1:],
-                                 'vol_change': 10*(vol_df['volume'].iloc[1:].to_numpy()/vol_df['volume'].iloc[0:-1].to_numpy()-1)})
+                                 'vol_change': (vol_df['volume'].iloc[1:].to_numpy()/vol_df['volume'].iloc[0:-1].to_numpy()-1)})
 
 date_list = sorted(list(set(return_df['date'].apply(lambda x:datetime.strptime(x,'%Y-%m-%d')).to_list())))
 
