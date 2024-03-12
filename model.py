@@ -14,3 +14,16 @@ class SectorEmbedding(layers.Layer):
     
     def call(self, x):
         return self.sec_emb(x)
+    
+class StockEmbedding(layers.Layer):
+    def __init__(self, embed_dim):
+        """
+        Parameters:
+            - n_sector: the number of sectors
+            - embed_dim: the dimension of the embedding vector
+        """
+        super().__init__()
+        self.stock_emb = layers.Dense(units = embed_dim)
+    
+    def call(self, x):
+        return self.stock_emb(x)
