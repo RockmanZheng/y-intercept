@@ -7,7 +7,7 @@ from datetime import datetime
 
 def calc_opt_portfolio(model: keras.Model,
                        inputs: np.ndarray,
-                       target_return: float = 0.1):
+                       target_return: float = 0.01):
     outputs = model.predict(inputs)
     n = outputs.shape[-1]//2
     mu = outputs[:,:n]
