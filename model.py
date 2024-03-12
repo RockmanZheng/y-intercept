@@ -30,7 +30,7 @@ class StockEmbedding(layers.Layer):
         Assuming the input x is of shape (stock, dim, period)
         """
         # transpose the last two axes
-        x = ops.transpose(x,axes = [0,2,1])
+        x = ops.transpose(x,axes = [0,1,3,2])
         return self.stock_emb(x)
 
 class PositionalEmbedding(layers.Layer):
@@ -74,8 +74,8 @@ class InputEmbedding(layers.Layer):
                 - x[i,3,t]: volume change of stock i in period t
         """
         positions = self.pos_emb(x)
-        sectors = self.sec_emb(x[:,0,:])
-        stocks = self.stock_emb(x[:,1:,:])
+        sectors = self.sec_emb(x[:,:,0,:])
+        stocks = self.stock_emb(x[:,:,1:,:])
         return positions + sectors + stocks
     
 class TransformerBlock(layers.Layer):
